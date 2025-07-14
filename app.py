@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import whisper
 from dotenv import load_dotenv
+import whisper
 import os
 import tempfile
 from langchain_openai import ChatOpenAI
@@ -13,8 +13,15 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# 🧠 Load Whisper + GPT model
-model = whisper.load_model("medium")  # Use "base" or "small" for faster startup on Render
+# 📦 Use persistent disk for Whisper model cache
+WHISPER_CACHE_PATH = "/whisper-cache"
+
+# 🧠 Load Whisper model (medium) with cache
+print("🔄 Loading Whisper model...")
+model = whisper.load_model("medium", download_root=WHISPER_CACHE_PATH)
+print("✅ Whisper model loaded")
+
+# 🤖 Load GPT model
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
 # 🎙️ Speech-to-Text + GPT-4o formatting
@@ -32,12 +39,12 @@ def speech_to_text():
         temp_path = temp_audio.name
 
     try:
-        # Transcribe
+        # Transcribe with Whisper
         result = model.transcribe(temp_path)
         transcription = result["text"]
         print("📝 Transcribed:", transcription)
 
-        # Format via GPT
+        # Format using GPT-4o
         prompt = (
             "You are a food ordering assistant. "
             "Convert this into a food order like '2 Paneer Tikka, 1 Cold Coffee'\n"
@@ -81,7 +88,7 @@ def translate():
         print("❌ Translation error:", str(e))
         return jsonify({"error": str(e)}), 500
 
-# ✅ Health check route
+# ✅ Health check
 @app.route("/", methods=["GET"])
 def health():
     return "Sarva Flask Backend is Running ✅"
