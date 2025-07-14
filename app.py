@@ -14,7 +14,7 @@ app = Flask(__name__)
 CORS(app)
 
 # 🧠 Load Whisper model with persistent path (for Render disk)
-model = whisper.load_model("base", download_root="/tmp/whisper-cache")
+model = whisper.load_model("small", download_root="/tmp/whisper-cache")
 
 # 🤖 GPT-4o model
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
