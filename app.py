@@ -13,15 +13,10 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# 📦 Use persistent disk for Whisper model cache
-WHISPER_CACHE_PATH = "/whisper-cache"
+# 🧠 Load Whisper model with persistent path (for Render disk)
+model = whisper.load_model("medium", download_root="/whisper-cache")
 
-# 🧠 Load Whisper model (medium) with cache
-print("🔄 Loading Whisper model...")
-model = whisper.load_model("medium", download_root=WHISPER_CACHE_PATH)
-print("✅ Whisper model loaded")
-
-# 🤖 Load GPT model
+# 🤖 GPT-4o model
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
 # 🎙️ Speech-to-Text + GPT-4o formatting
@@ -39,12 +34,11 @@ def speech_to_text():
         temp_path = temp_audio.name
 
     try:
-        # Transcribe with Whisper
         result = model.transcribe(temp_path)
         transcription = result["text"]
         print("📝 Transcribed:", transcription)
 
-        # Format using GPT-4o
+        # Format via GPT
         prompt = (
             "You are a food ordering assistant. "
             "Convert this into a food order like '2 Paneer Tikka, 1 Cold Coffee'\n"
@@ -93,7 +87,7 @@ def translate():
 def health():
     return "Sarva Flask Backend is Running ✅"
 
-# 🚀 Start server
+# 🚀 Run app
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5050))
     app.run(host="0.0.0.0", port=port, debug=False)
